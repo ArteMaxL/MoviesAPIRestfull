@@ -12,5 +12,6 @@ namespace MoviesAPI.Data
         // Add models here
         public DbSet<Category> Categories { get; set; }
         public DbSet<Movie> Movies { get; set; }
+        public DbSet<User> Users { get; set; }
     }
 }
