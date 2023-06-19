@@ -21,6 +21,7 @@ namespace MoviesAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet]
+        [ResponseCache(Duration = 20)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetCategories() 
@@ -38,6 +39,8 @@ namespace MoviesAPI.Controllers
 
         [AllowAnonymous]
         [HttpGet("{categoryId:int}", Name = "GetCategory")]
+        // [ResponseCache(Duration = 20)]
+        [ResponseCache(CacheProfileName = "Default20seconds")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
