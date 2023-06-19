@@ -1,8 +1,12 @@
-﻿using MoviesAPI.Data;
+﻿using Microsoft.IdentityModel.Tokens;
+using MoviesAPI.Data;
 using MoviesAPI.Models;
 using MoviesAPI.Models.Dtos;
 using MoviesAPI.Repository.IRepository;
 using MoviesAPI.Utils;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using XSystem.Security.Cryptography;
 
 namespace MoviesAPI.Repository
@@ -10,10 +14,12 @@ namespace MoviesAPI.Repository
     public class UserRepository : IUserRepository
     {
         private readonly ApplicationDbContext _bd;
+        private string secretKey;
 
-        public UserRepository(ApplicationDbContext bd)
+        public UserRepository(ApplicationDbContext bd, IConfiguration config)
         {
             _bd = bd;
+            secretKey = config.GetValue<string>("ApiSettings:Secret");
         }
         public User GetUser(int id)
         {
@@ -49,9 +55,44 @@ namespace MoviesAPI.Repository
             return user;
         }
 
-        public Task<UserLoginResponseDto> Login(UserLoginDto userLoginDto)
+        public async Task<UserLoginResponseDto> Login(UserLoginDto userLoginDto)
         {
-            throw new NotImplementedException();
+            var encryptedPassword = Encrypted.GetMd5(userLoginDto.Password);
+
+            var user = _bd.Users.FirstOrDefault(
+                        u => u.UserName.ToLower() == userLoginDto.UserName.ToLower() &&
+                        u.Password == encryptedPassword);
+
+            if (user == null) 
+            { 
+                return new UserLoginResponseDto()
+                {
+                    Token = string.Empty,
+                    User = null
+                }; 
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(secretKey);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                    new Claim(ClaimTypes.Role, user.Role.ToString())
+                }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            UserLoginResponseDto userLoginResponseDto = new UserLoginResponseDto()
+            {
+                Token = tokenHandler.WriteToken(token),
+                User = user
+            };
+
+            return userLoginResponseDto;
         }        
     }
 }
