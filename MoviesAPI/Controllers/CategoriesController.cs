@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MoviesAPI.Models;
 using MoviesAPI.Models.Dtos;
 using MoviesAPI.Repository.IRepository;
 
 namespace MoviesAPI.Controllers
-{
+{    
     [ApiController]
     [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
@@ -18,6 +19,7 @@ namespace MoviesAPI.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -34,6 +36,7 @@ namespace MoviesAPI.Controllers
             return Ok(listCategoriesDto);
         }
 
+        [AllowAnonymous]
         [HttpGet("{categoryId:int}", Name = "GetCategory")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -53,10 +56,12 @@ namespace MoviesAPI.Controllers
             return Ok(itemCategoryDto);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ProducesResponseType(201, Type = typeof(CategoryDto))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
         {
@@ -87,10 +92,12 @@ namespace MoviesAPI.Controllers
             return CreatedAtRoute("GetCategory", new { categoryId = category.Id }, category);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPatch("{categoryId:int}", Name = "UpdatePatchCategory")]
         [ProducesResponseType(201, Type = typeof(CategoryDto))]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult UpdatePatchCategory(int categoryId, [FromBody] CreateCategoryDto createCategoryDto)
         {
@@ -115,8 +122,10 @@ namespace MoviesAPI.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{categoryId:int}", Name = "DeleteCategory")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

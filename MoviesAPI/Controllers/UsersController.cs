@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +8,7 @@ using MoviesAPI.Models;
 using MoviesAPI.Models.Dtos;
 using MoviesAPI.Repository;
 using MoviesAPI.Repository.IRepository;
+using System.Data;
 using System.Net;
 
 namespace MoviesAPI.Controllers
@@ -25,7 +27,9 @@ namespace MoviesAPI.Controllers
             _apiResponse = new();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetUsers()
@@ -41,10 +45,12 @@ namespace MoviesAPI.Controllers
             return Ok(listUsersDto);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpGet("{userId:int}", Name = "GetUser")]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetUser(int userId)
         {
@@ -60,6 +66,7 @@ namespace MoviesAPI.Controllers
             return Ok(itemUserDto);
         }
 
+        [AllowAnonymous]
         [HttpPost("Register")]
         [ProducesResponseType(201, Type = typeof(UserDto))]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -94,6 +101,7 @@ namespace MoviesAPI.Controllers
             return Ok(_apiResponse);
         }
 
+        [AllowAnonymous]
         [HttpPost("Login")]
         [ProducesResponseType(201, Type = typeof(UserDto))]
         [ProducesResponseType(StatusCodes.Status201Created)]

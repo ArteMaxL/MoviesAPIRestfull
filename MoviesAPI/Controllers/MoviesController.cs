@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MoviesAPI.Models;
@@ -20,6 +21,7 @@ namespace MoviesAPI.Controllers
             _mapper = mapper;
         }
 
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -36,6 +38,7 @@ namespace MoviesAPI.Controllers
             return Ok(listMoviesDto);
         }
 
+        [AllowAnonymous]
         [HttpGet("{movieId:int}", Name = "GetMovie")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -55,10 +58,12 @@ namespace MoviesAPI.Controllers
             return Ok(itemMovieDto);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ProducesResponseType(201, Type = typeof(MovieDto))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult CreateMovie([FromBody] MovieDto movieDto)
         {
@@ -89,8 +94,10 @@ namespace MoviesAPI.Controllers
             return CreatedAtRoute("GetMovie", new { movieId = movie.Id }, movie);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPatch("{movieId:int}", Name = "UpdatePatchMovie")]
         [ProducesResponseType(204, Type = typeof(MovieDto))]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult UpdatePatchMovie(int movieId, [FromBody] MovieDto movieDto)
@@ -116,8 +123,10 @@ namespace MoviesAPI.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "admin")]
         [HttpDelete("{movieId:int}", Name = "DeleteMovie")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -139,6 +148,7 @@ namespace MoviesAPI.Controllers
             return NoContent();
         }
 
+        [AllowAnonymous]
         [HttpGet("GetMoviesByCategory/{categoryId:int}")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -160,7 +170,7 @@ namespace MoviesAPI.Controllers
             return Ok(listMoviesDto);
         }
 
-
+        [AllowAnonymous]
         [HttpGet("SearchMovie")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
